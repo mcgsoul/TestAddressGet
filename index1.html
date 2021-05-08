@@ -25,7 +25,7 @@
 				console.log(point);
 				var one = wgs84togcj02(point.lng,point.lat);
 				$.ajax({
-					url:"http://api.map.baidu.com/reverse_geocoding/v3/?extensions_poi=1&ak=jAdUkD5C3Hw2ymvffU88ssfgmpnyEMYj&output=json&ret_coordtype=bd09ll&location="+one[1]+","+one[0],
+					url:"https://api.map.baidu.com/reverse_geocoding/v3/?extensions_poi=1&ak=jAdUkD5C3Hw2ymvffU88ssfgmpnyEMYj&output=json&ret_coordtype=bd09ll&location="+one[1]+","+one[0],
 					type:"POST",
 					dataType:"jsonp",
 					success:function (res) {
