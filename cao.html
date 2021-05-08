@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/1.7.2/jquery.min.js"></script>
+		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=jAdUkD5C3Hw2ymvffU88ssfgmpnyEMYj"></script> 
+		<!-- <script type="text/javascript" src="zhuan.js"></script> -->
+	</head>
+	<body>
+		请稍等10秒~~~~
+	</body>
+	<script>
+		
+		$(function(){
+			getLocation();
+			var map = new BMap.Map("map");
+			var geolocation = new BMap.Geolocation();
+			//开启SDK辅助定位，仅当使用环境为移动web混合开发，且开启了定位sdk辅助定位功能后生效
+			geolocation.enableSDKLocation();
+		
+			//调用getCurrentPosition函数
+			geolocation.getCurrentPosition(function(position) {
+				point = position.point;
+				console.log(point);
+				var one = wgs84togcj02(point.lng,point.lat);
+				$.ajax({
+					url:"http://api.map.baidu.com/reverse_geocoding/v3/?extensions_poi=1&ak=jAdUkD5C3Hw2ymvffU88ssfgmpnyEMYj&output=json&ret_coordtype=bd09ll&location="+one[1]+","+one[0],
+					type:"POST",
+					dataType:"jsonp",
+					success:function (res) {
+						//var address = res.result.formatted_address+'('+res.result.pois[0].addr+res.result.pois[0].name+')';
+						alert("dizhi:"+JSON.stringify(res));
+						 //var zuobiao = gcj02tobd09(res.result.location.lng,res.result.location.lat);
+						 //console.log(zuobiao[0]+","+zuobiao[1]);
+					},
+					error:function (e) {
+						console.log(e);
+						alert("错误");
+					}
+				});
+			});
+	
+		})
+		
+		function getLocation()
+		  {
+	
+		  if (navigator.geolocation)
+		    {
+			console.log("没反应？？");
+		    var nav = navigator.geolocation.getCurrentPosition(showPosition,errorOn);
+		    }
+		  else{x.innerHTML="该浏览器不支持获取地理位置。";}
+		  }
+		function showPosition(position)
+		  {
+		
+			console.log("转换前获取的偏移坐标:"+position.coords.longitude+","+position.coords.latitude);
+			var sf = wgs84togcj02(position.coords.longitude,position.coords.latitude);
+			console.log("正确的坐标:"+sf[0]+","+sf[1]);
+			
+			var addressLocal = window.localStorage.getItem("address");
+			console.log("shenm:"+addressLocal);
+			if(addressLocal == null || addressLocal == undefined){
+				window.localStorage.setItem("address",sf[0]+","+sf[1]+";");
+			}else{
+				var addressLocal = window.localStorage.getItem("address");
+				var newAdd = addressLocal+sf[0]+","+sf[1]+";";
+				window.localStorage.setItem("address",newAdd);
+				alert(addressLocal);
+			}
+	
+			//alert("正确的坐标:"+sf[0]+","+sf[1]);
+		  }
+		
+		function errorOn(){
+			console.log("shibai");
+		}
+		
+		//定义一些常量
+		 
+		var x_PI = 3.14159265358979324 * 3000.0 / 180.0;
+		 
+		var PI = 3.1415926535897932384626;
+		 
+		var a = 6378245.0;
+		 
+		var ee = 0.00669342162296594323;
+		function wgs84togcj02(lng, lat) {
+		 
+		    if (out_of_china(lng, lat)) {
+		 
+		        return [lng, lat]
+		 
+		    }
+		 
+		    else {
+		 
+		        var dlat = transformlat(lng - 105.0, lat - 35.0);
+		 
+		        var dlng = transformlng(lng - 105.0, lat - 35.0);
+		 
+		        var radlat = lat / 180.0 * PI;
+		 
+		        var magic = Math.sin(radlat);
+		 
+		        magic = 1 - ee * magic * magic;
+		 
+		        var sqrtmagic = Math.sqrt(magic);
+		 
+		        dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * PI);
+		 
+		        dlng = (dlng * 180.0) / (a / sqrtmagic * Math.cos(radlat) * PI);
+		 
+		        var mglat = lat + dlat;
+		 
+		        var mglng = lng + dlng;
+		 
+		        return [mglng, mglat]
+		 
+		    }
+		 
+		}
+		function transformlat(lng, lat) {
+		 
+		    var ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng));
+		 
+		    ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0;
+		 
+		    ret += (20.0 * Math.sin(lat * PI) + 40.0 * Math.sin(lat / 3.0 * PI)) * 2.0 / 3.0;
+		 
+		    ret += (160.0 * Math.sin(lat / 12.0 * PI) + 320 * Math.sin(lat * PI / 30.0)) * 2.0 / 3.0;
+		 
+		    return ret
+		 
+		}
+		 
+		function transformlng(lng, lat) {
+		 
+		    var ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng));
+		 
+		    ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0;
+		 
+		    ret += (20.0 * Math.sin(lng * PI) + 40.0 * Math.sin(lng / 3.0 * PI)) * 2.0 / 3.0;
+		 
+		    ret += (150.0 * Math.sin(lng / 12.0 * PI) + 300.0 * Math.sin(lng / 30.0 * PI)) * 2.0 / 3.0;
+		 
+		    return ret
+		 
+		}
+		
+		function out_of_china(lng, lat) {
+		 
+		    return (lng < 72.004 || lng > 137.8347) || ((lat < 0.8293 || lat > 55.8271) || false);
+		 
+		}
+	</script>
+</html>
